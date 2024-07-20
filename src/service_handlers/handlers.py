@@ -5,6 +5,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from src.celery_tasks.tasks import send_reminder, send_reminder1
 from src.user.dependencies import user_service as _user_service
 from src.user.models import User
 from src.utils.buttons import BaseMenuKeyboard as bmk
@@ -24,6 +25,8 @@ async def cancel_handler(message: types.Message, state: FSMContext):
             await state.clear()
             await message.answer("Операция отменена.")
         else:
+            send_reminder.apply_async((message.from_user.id, "!!!!!!!!!!"), countdown=30)
+            send_reminder.apply_async((message.from_user.id, "@@@@@@@@@@@@@"), countdown=15)
             await message.answer("Нет активных операций для отмены.")
     except Exception as err:
         logging.exception(f"Error: command cancel - {err}")
