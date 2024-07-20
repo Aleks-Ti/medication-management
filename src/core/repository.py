@@ -4,8 +4,8 @@ from typing import Generic, Protocol, TypeVar
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 
-from src.core.database import async_session_maker
 from src.core.exceptions import ItemNotExist
+from src.core.postgres_connect import async_session_maker
 
 
 class HasId(Protocol):

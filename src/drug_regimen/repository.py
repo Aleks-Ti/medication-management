@@ -4,13 +4,13 @@ from sqlalchemy.orm import selectinload
 
 from src.core.postgres_connect import async_session_maker
 from src.core.repository import SQLAlchemyRepository
-from src.user.models import User
+from src.drug_regimen.models import Management
 
 
-class UserRepository(SQLAlchemyRepository):
-    model: type[User] = User
+class DrugRegimenRepository(SQLAlchemyRepository):
+    model: type[Management] = Management
 
-    async def get_or_create_user(self, message: Message) -> User:
+    async def get_or_create_user(self, message: Message) -> Management:
         async with async_session_maker() as session:
             stmt = select(self.model).where(self.model.tg_user_id == message.from_user.id)
             res = (await session.execute(stmt)).scalar_one_or_none()

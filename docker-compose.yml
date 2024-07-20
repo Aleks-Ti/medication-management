@@ -1,50 +1,54 @@
 version: '3.8'
 
 networks:
-  space:
-    name: medication-management_space
+  space_medication_management:
+    name: medication_management_space
     driver: bridge
 
 services:
   bot:
-    container_name: bot_app
-    build: ./
+    build:
+      context: .
+      dockerfile: Dockerfile
     env_file: .env
     networks:
-      - space
+      - space_medication_management
     depends_on:
       - db
+      - redis
   db:
     image: "postgres:16"
-    container_name: bot_db
     restart: always
     env_file: .env
     environment:
       POSTGRES_PASSWORD: ${PG_PASSWORD}
       POSTGRES_DB: ${PG_DB_NAME}
-      POSTGRES_USER: ${PG_USERNAME}
+      POSTGRES_USER: ${PG_USER_NAME}
       POSTGRES_PORT: ${PG_PORT}
     volumes:
       - pg_data:/var/lib/postgresql/data
     networks:
-      - space
+      - space_medication_management
   celery:
-    image: "celery"
+    build:
+      context: .
+      dockerfile: Dockerfile
     env_file: .env
-    command: celery worker --loglevel=info
+    command: celery -A src.core.celery_connect worker --loglevel=info
     depends_on:
       - bot
       - redis
-      - db
     networks:
-      - space
+      - space_medication_management
   redis:
     image: "redis:6.2-alpine"
     restart: always
+    env_file: .env
     volumes:
       - redis_data:/data
     networks:
-      - space
+      - space_medication_management
 
 volumes:
   pg_data:
+  redis_data:

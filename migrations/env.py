@@ -5,7 +5,7 @@ from sqlalchemy import pool
 from src.core.base import metadata
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from src.core.connector_for_alembic_and_alchemy import DataBaseConfig
+from src.core.config import postgres_conf
 from alembic import context
 from src.user.models import User  # noqa
 
@@ -16,7 +16,7 @@ if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
 ### MY SETTINGS # noqa
-DATABASE_URL = DataBaseConfig().build_connection_str()
+DATABASE_URL = postgres_conf.build_connection_str()
 target_metadata = metadata
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
 ### END MY SETTINGS # noqa
