@@ -1,6 +1,5 @@
 from aiogram.types import Message
 from sqlalchemy import insert, select
-from sqlalchemy.orm import selectinload
 
 from src.core.postgres_connect import async_session_maker
 from src.core.repository import SQLAlchemyRepository

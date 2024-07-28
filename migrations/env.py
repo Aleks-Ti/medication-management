@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from src.core.config import postgres_conf
 from alembic import context
 from src.user.models import User  # noqa
+from src.drug_regimen.models import Manager, Drug, Regimen  # noqa
 
 
 config = context.config

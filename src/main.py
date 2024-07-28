@@ -1,23 +1,14 @@
 import asyncio
 import logging
-import os
 import subprocess
 import sys
 
-from aiogram import Bot, Dispatcher, F, Router, types
-from aiogram.filters import Command, CommandStart
-from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
-from celery import Celery
+from aiogram import Bot, Dispatcher
 from dotenv import load_dotenv
 
 from src.core.config import bot_conf
 from src.routers import all_routers
-from src.user.dependencies import user_service as _user_service
-from src.user.models import User
-from src.utils.buttons import BaseMenuKeyboard as bmk
-from src.utils.buttons import MainKeyboard as mk
-from src.utils.buttons import bot_menu_commands
+from src.utils.buttons import BOT_MENU_COMMANDS
 
 load_dotenv()
 
@@ -40,7 +31,7 @@ async def main() -> None:
         dp = Dispatcher()
         for router in all_routers:
             dp.include_router(router)
-        await bot.set_my_commands(bot_menu_commands, language_code="ru")
+        await bot.set_my_commands(BOT_MENU_COMMANDS, language_code="ru")
         await dp.start_polling(bot)
     except Exception as err:
         logging.exception(f"Error. {err}")

@@ -4,6 +4,7 @@ import sqlalchemy as sa
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.base import Base
+from src.drug_regimen.models import Manager  # noqa: F401
 
 
 class User(Base):
@@ -16,4 +17,4 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(sa.String(64), nullable=True, unique=False)
     registered_at: Mapped[datetime] = mapped_column(sa.DateTime, default=datetime.now)
 
-    # management = relationship("Management", back_populates="user", uselist=False)
+    managers = relationship("Manager", back_populates="user", uselist=True)

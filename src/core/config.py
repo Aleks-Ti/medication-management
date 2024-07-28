@@ -48,20 +48,26 @@ class PostgresConfig:
 
 @dataclass
 class RedisConfig:
-    db_num: int = int(getenv("REDIS_DATABASE", 0))  # 0-10
+    db_num_for_calery: int = int(getenv("REDIS_DATABASE_FOR_CELERY", 0))  # 0-10
+    db_num_for_aiogram: int = int(getenv("REDIS_DATABASE_FOR_AIOGRAM", 1))  # 0-10
+
     password: str | None = getenv("REDIS_PASSWORD")
     port: str | None = getenv("REDIS_PORT")
 
     def __post_init__(self):
-        required_vars = ["db_num", "password"]
+        required_vars = ["db_num_for_calery", "password", "db_num_for_aiogram", "port"]
         for var in required_vars:
             if getattr(self, var) is None:
                 raise ValueError(
                     f"Нет переменной {var} для коннекта к Redis в окружении проекта.",
                 )
 
-    def build_connection_str(self) -> str:
-        connect = f"redis://redis:{self.port}/{self.db_num}"
+    def build_connection_str_for_celery(self) -> str:
+        connect = f"redis://redis:{self.port}/{self.db_num_for_calery}"
+        return connect
+
+    def build_connection_str_for_aiogram(self) -> str:
+        connect = f"redis://redis:{self.port}/{self.db_num_for_aiogram}"
         return connect
 
 

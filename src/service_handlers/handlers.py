@@ -5,7 +5,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from src.celery_tasks.tasks import send_reminder, send_reminder1
+from src.celery_tasks.tasks import send_reminder
 from src.user.dependencies import user_service as _user_service
 from src.user.models import User
 from src.utils.buttons import BaseMenuKeyboard as bmk
@@ -14,7 +14,7 @@ from src.utils.buttons import MainKeyboard as mk
 start_router = Router(name="start")
 
 
-@start_router.message(Command("cancel"))
+@start_router.message(Command(bmk.CANCEL))
 @start_router.message((F.text.casefold() == mk.CANCEL) | (F.text == mk.CANCEL))
 async def cancel_handler(message: types.Message, state: FSMContext):
     """Обработчик команды отмены."""
@@ -25,8 +25,7 @@ async def cancel_handler(message: types.Message, state: FSMContext):
             await state.clear()
             await message.answer("Операция отменена.")
         else:
-            send_reminder.apply_async((message.from_user.id, "!!!!!!!!!!"), countdown=30)
-            send_reminder.apply_async((message.from_user.id, "@@@@@@@@@@@@@"), countdown=15)
+            # send_reminder.apply_async((message.from_user.id, "@@@@@@@@@@@@@"), countdown=15)
             await message.answer("Нет активных операций для отмены.")
     except Exception as err:
         logging.exception(f"Error: command cancel - {err}")
@@ -54,7 +53,8 @@ async def send_welcome(message: Message):
     await message.answer(
         text="Привет {}!\n"
         "Добро пожаловать в телеграм бота!\n"
-        "Мы поможем вам отслеживать прием лекарст, чтобы ничего не забыть.\n\n"
+        "Мы поможем вам отслеживать прием лекарст/витаминов/минералов/препаратов или просто не забыть выпить "
+        "йогурта в обед для хорошего пищеварения!\nБот поможет ничего не забыть!\n\n"
         "Если хотите создать курс приема лекарств, выбирайте кнопку **{}**\n\n"
         "Можете посмотреть пройденный курсы и заметки по ним, выбирайте кнопку **{}**".format(
             user.first_name, mk.ADD_DRUG_REGIMEN, mk.ME_DRUG_REGIMEN,
@@ -63,7 +63,7 @@ async def send_welcome(message: Message):
     )
 
 
-@start_router.message(Command("help"))
-@start_router.message((F.text.casefold() == bmk.HELP))
+@start_router.message(Command(bmk.HELP))
+# @start_router.message((F.text.casefold() == bmk.HELP))
 async def help_handler(message: types.Message):
     await message.answer(text="Справка по боту и пользованию")

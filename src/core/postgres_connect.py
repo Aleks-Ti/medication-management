@@ -1,13 +1,11 @@
 from collections.abc import Callable
 
-from aiogram.fsm.storage.redis import RedisStorage
-from redis.asyncio.client import Redis
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.ext.asyncio import create_async_engine as _create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.core.config import postgres_conf, redis_conf
+from src.core.config import postgres_conf
 
 
 def create_async_engine(url: URL | str) -> AsyncEngine:

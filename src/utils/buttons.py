@@ -26,16 +26,18 @@ class BaseMenuKeyboard:
     - CANCEL = "/cancel" -> CANCEL_DESCRIPTION = "Отмена"
     """
 
-    START: str = "/start"
-    HELP: str = "/help"
-    CANCEL: str = "/cancel"
+    START: str = "start"
+    HELP: str = "help"
+    CANCEL: str = "cancel"
 
     START_DESCRIPTION: str = "Старт/Перезапуск"
     HELP_DESCRIPTION: str = "Справка"
     CANCEL_DESCRIPTION: str = "Отмена действия"
 
 
-async def inline_buttons_generator(buttons: list[str, int], prefix=None, postfix=None) -> list:
+async def inline_buttons_generator(
+        buttons: list[str, int], prefix=None, postfix=None, callback_unique_indetifier=None,
+) -> types.InlineKeyboardMarkup:
     max_button_one_page = 3
     result_list_buttons = []
     temp_list_buttons = []
@@ -46,7 +48,9 @@ async def inline_buttons_generator(buttons: list[str, int], prefix=None, postfix
             result_list_buttons.append(temp_list_buttons)
             temp_list_buttons = []
             count = 0  # because clear temp_list_buttons
-            temp_list_buttons.append(types.InlineKeyboardButton(text=text, callback_data=text))
+            temp_list_buttons.append(types.InlineKeyboardButton(
+                text=text, callback_data=callback_unique_indetifier + ":" + text if callback_unique_indetifier else text),
+            )
             count += 1  # + 1 because after clearing the list, a subsequent button from the iteration has already been added
         else:
             temp_list_buttons.append(types.InlineKeyboardButton(text=text, callback_data=text))
@@ -59,7 +63,7 @@ async def inline_buttons_generator(buttons: list[str, int], prefix=None, postfix
     return keyboard
 
 
-bot_menu_commands = [
+BOT_MENU_COMMANDS = [
     types.BotCommand(command=BaseMenuKeyboard.START, description=BaseMenuKeyboard.START_DESCRIPTION),
     types.BotCommand(command=BaseMenuKeyboard.HELP, description=BaseMenuKeyboard.HELP),
     types.BotCommand(command=BaseMenuKeyboard.CANCEL, description=BaseMenuKeyboard.CANCEL_DESCRIPTION),

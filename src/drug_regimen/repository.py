@@ -1,16 +1,15 @@
 from aiogram.types import Message
 from sqlalchemy import insert, select
-from sqlalchemy.orm import selectinload
 
 from src.core.postgres_connect import async_session_maker
 from src.core.repository import SQLAlchemyRepository
-from src.drug_regimen.models import Management
+from src.drug_regimen.models import Drug, Manager, Regimen
 
 
-class DrugRegimenRepository(SQLAlchemyRepository):
-    model: type[Management] = Management
+class ManagerRepository(SQLAlchemyRepository):
+    model: type[Manager] = Manager
 
-    async def get_or_create_user(self, message: Message) -> Management:
+    async def get_or_create_user(self, message: Message) -> Manager:
         async with async_session_maker() as session:
             stmt = select(self.model).where(self.model.tg_user_id == message.from_user.id)
             res = (await session.execute(stmt)).scalar_one_or_none()
@@ -35,3 +34,11 @@ class DrugRegimenRepository(SQLAlchemyRepository):
                 # user = await session.execute(stmt)
                 await session.commit()
                 return user
+
+
+class DrugRepository(SQLAlchemyRepository):
+    model: type[Drug] = Drug
+
+
+class RegimenRepository(SQLAlchemyRepository):
+    model: type[Regimen] = Regimen
