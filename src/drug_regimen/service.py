@@ -1,5 +1,4 @@
 from src.core.repository import AbstractRepository
-from src.drug_regimen.models import Drug, Manager, Regimen
 from src.drug_regimen.repository import DrugRepository, ManagerRepository, RegimenRepository
 
 

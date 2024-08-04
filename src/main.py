@@ -4,9 +4,10 @@ import subprocess
 import sys
 
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.redis import RedisStorage
 from dotenv import load_dotenv
 
-from src.core.config import bot_conf
+from src.core.config import bot_conf, redis_conf
 from src.routers import all_routers
 from src.utils.buttons import BOT_MENU_COMMANDS
 
@@ -27,8 +28,9 @@ logging.getLogger().addHandler(console_handler)
 
 async def main() -> None:
     try:
+        storage = RedisStorage.from_url(redis_conf.build_connection_str_for_aiogram())
         bot = Bot(bot_conf.token)
-        dp = Dispatcher()
+        dp = Dispatcher(storage=storage)
         for router in all_routers:
             dp.include_router(router)
         await bot.set_my_commands(BOT_MENU_COMMANDS, language_code="ru")

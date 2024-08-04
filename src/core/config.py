@@ -50,6 +50,7 @@ class PostgresConfig:
 class RedisConfig:
     db_num_for_calery: int = int(getenv("REDIS_DATABASE_FOR_CELERY", 0))  # 0-10
     db_num_for_aiogram: int = int(getenv("REDIS_DATABASE_FOR_AIOGRAM", 1))  # 0-10
+    redis_host: str | None = getenv("REDIS_HOST", "localhost")
 
     password: str | None = getenv("REDIS_PASSWORD")
     port: str | None = getenv("REDIS_PORT")
@@ -63,11 +64,11 @@ class RedisConfig:
                 )
 
     def build_connection_str_for_celery(self) -> str:
-        connect = f"redis://redis:{self.port}/{self.db_num_for_calery}"
+        connect = f"redis://{self.redis_host}:{self.port}/{self.db_num_for_calery}"
         return connect
 
     def build_connection_str_for_aiogram(self) -> str:
-        connect = f"redis://redis:{self.port}/{self.db_num_for_aiogram}"
+        connect = f"redis://{self.redis_host}/{self.db_num_for_aiogram}/{self.db_num_for_calery}"
         return connect
 
 

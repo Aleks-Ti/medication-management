@@ -1,5 +1,4 @@
 from src.core.repository import AbstractRepository
-from src.user.models import User
 from src.user.repository import UserRepository
 
 

@@ -17,10 +17,10 @@ class DrugState(StatesGroup):
     """Сборщик информации о конкретном приёме лекарства."""
 
     name = State()
-    day_start_date = State()
-    month_start_date = State()
-    day_finish_date = State()
-    month_finish_date = State()
+    start_date = State()
+    finish_date = State()
+    daily_intake = State()
+    reception_time = State()
     cancel = State()
 
 

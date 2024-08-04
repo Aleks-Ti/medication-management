@@ -68,3 +68,18 @@ BOT_MENU_COMMANDS = [
     types.BotCommand(command=BaseMenuKeyboard.HELP, description=BaseMenuKeyboard.HELP),
     types.BotCommand(command=BaseMenuKeyboard.CANCEL, description=BaseMenuKeyboard.CANCEL_DESCRIPTION),
 ]
+
+
+async def get_string_representation_pool_inline_buttons(keyboard: types.InlineKeyboardMarkup) -> list[str]:
+    temp: list[str] = [x[0].text if len(x) == 1 else ",".join([x.text for x in x]) for x in keyboard.inline_keyboard]
+    result = []
+    for x in temp:
+        if x.isdigit():
+            result.append(x)
+        else:
+            if x[0].isdigit():
+                for j in x.split(","):
+                    result.append(j)
+            else:
+                result.append(x)
+    return result

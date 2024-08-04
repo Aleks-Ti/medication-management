@@ -5,7 +5,6 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from src.celery_tasks.tasks import send_reminder
 from src.user.dependencies import user_service as _user_service
 from src.user.models import User
 from src.utils.buttons import BaseMenuKeyboard as bmk
