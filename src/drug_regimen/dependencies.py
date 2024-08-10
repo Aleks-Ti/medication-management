@@ -1,14 +1,11 @@
-from src.drug_regimen.repository import DrugRepository, ManagerRepository, RegimenRepository
-from src.drug_regimen.service import DrugService, ManagerService, RegimenService
-
-
-def drug_service():
-    return DrugService(DrugRepository)
+from src.drug_regimen.repository import ManagerRepository, RegimenRepository
+from src.drug_regimen.service import ManagerService, RegimenService
+from src.user.repository import UserRepository
 
 
 def manager_service():
-    return ManagerService(ManagerRepository)
+    return ManagerService(ManagerRepository, UserRepository)
 
 
 def regimen_service():
-    return RegimenService(RegimenRepository)
+    return RegimenService(RegimenRepository, UserRepository)

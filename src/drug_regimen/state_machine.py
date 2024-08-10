@@ -10,14 +10,13 @@ class ManagerState(StatesGroup):
     finish_date = State()
     # month_finish_date = State()
     timezone = State()
-    cancel = State()
 
 
 class RegimenState(StatesGroup):
     """Заполнитель режима приема лекарств."""
 
     hour = State()
-    minute = State()
+    regimen_time = State()
     supplement = State()
     """После еды или до/на тощак/запить/рассосать и тп."""
     add_more = State()

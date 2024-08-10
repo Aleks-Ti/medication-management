@@ -3,7 +3,7 @@ from sqlalchemy import insert, select
 
 from src.core.postgres_connect import async_session_maker
 from src.core.repository import SQLAlchemyRepository
-from src.drug_regimen.models import Drug, Manager, Regimen
+from src.drug_regimen.models import Manager, Regimen
 
 
 class ManagerRepository(SQLAlchemyRepository):
@@ -34,10 +34,6 @@ class ManagerRepository(SQLAlchemyRepository):
                 # user = await session.execute(stmt)
                 await session.commit()
                 return user
-
-
-class DrugRepository(SQLAlchemyRepository):
-    model: type[Drug] = Drug
 
 
 class RegimenRepository(SQLAlchemyRepository):

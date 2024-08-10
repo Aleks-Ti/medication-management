@@ -12,10 +12,8 @@ class UserRepository(SQLAlchemyRepository):
     async def get_or_create_user(self, message: Message) -> User:
         async with async_session_maker() as session:
             stmt = select(self.model).where(self.model.tg_user_id == message.from_user.id)
-            res = (await session.execute(stmt)).scalar_one_or_none()
-            if res:
-                return res
-            else:
+            result = (await session.execute(stmt)).scalar_one_or_none()
+            if result is None:
                 user_data = {
                     "username": message.from_user.full_name,
                     "tg_user_id": message.from_user.id,
@@ -24,13 +22,8 @@ class UserRepository(SQLAlchemyRepository):
                 }
 
                 stmt_user = insert(self.model).values(**user_data).returning(self.model)
-                res_user = await session.execute(stmt_user)
-                await session.flush()
-                user = res_user.scalar_one()
-                # stmt_game_profile = insert(GameProfile).values({"user_id": user.id})
-                # await session.execute(stmt_game_profile)
-
-                # stmt = select(User).where(message.from_user.id == User.tg_user_id).options(selectinload(User.game_profile))
-                # user = await session.execute(stmt)
+                result_user = await session.execute(stmt_user)
                 await session.commit()
-                return user
+                result = result_user.scalar_one()
+
+            return result
