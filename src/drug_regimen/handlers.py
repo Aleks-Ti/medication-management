@@ -4,10 +4,11 @@ from datetime import datetime, timedelta
 from aiogram import F, Router, types
 from aiogram.fsm.context import FSMContext
 
-from src.drug_regimen.state_machine import DrugState, ManagerState
+from src.drug_regimen.state_machine import RegimenState, ManagerState
 from src.drug_regimen.utils import LOCAL_RU_MONTH, get_user_date
 from src.utils.buttons import MainKeyboard as mk
-from src.utils.buttons import get_string_representation_pool_inline_buttons, inline_buttons_generator
+from src.utils.buttons import InlineButtonsGenerator as ibg
+
 
 drug_regimen_router = Router(name="drug_regimen")
 
@@ -40,14 +41,14 @@ async def manager_start_date(message: types.Message, state: FSMContext):
     next_month_name = None
 
     days_current_month = monthrange(current_year, current_month)[1]
-    keyboard = await inline_buttons_generator(range(current_day, days_current_month + 1))
+    keyboard = await ibg.inline_buttons_generator(range(current_day, days_current_month + 1))
     keyboard.inline_keyboard.insert(0, [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)])
 
     if len(keyboard.inline_keyboard) < 7:
         next_month = current_month + 1 if current_month < 12 else 1
         next_month_name = LOCAL_RU_MONTH[next_month]
         keyboard.inline_keyboard.append([types.InlineKeyboardButton(text=next_month_name, callback_data=next_month_name)])
-        next_month_days = await inline_buttons_generator(range(1, days_current_month - current_day + 1))
+        next_month_days = await ibg.inline_buttons_generator(range(1, days_current_month - current_day + 1))
         for day_keyboard_next_month in next_month_days.inline_keyboard:
             keyboard.inline_keyboard.append(day_keyboard_next_month)
     else:
@@ -57,7 +58,7 @@ async def manager_start_date(message: types.Message, state: FSMContext):
         keyboard.inline_keyboard[max_row_buttons + skip_row_name_math - 1].pop()
         keyboard.inline_keyboard[max_row_buttons + skip_row_name_math - 1].pop()
 
-    temp_data_with_date_for_user = await get_string_representation_pool_inline_buttons(keyboard)
+    temp_data_with_date_for_user = await ibg.get_string_representation_pool_inline_buttons(keyboard)
     await state.update_data(temp_data_with_date_for_user=temp_data_with_date_for_user)
     await message.answer(
         "Когда начнем? Запланируем старт ближайшую неделю. Сначала выберем подходящий день.",
@@ -90,7 +91,7 @@ async def manager_survey_finish_date(callback_query: types.CallbackQuery, state:
 
     current_month_name = LOCAL_RU_MONTH[current_month]
     days_current_month = monthrange(current_year, current_month)[1]
-    keyboard = await inline_buttons_generator(range(current_day, days_current_month + 1))
+    keyboard = await ibg.inline_buttons_generator(range(current_day, days_current_month + 1))
     keyboard.inline_keyboard.insert(0, [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)])
 
     if len(keyboard.inline_keyboard) < 30:
@@ -99,11 +100,11 @@ async def manager_survey_finish_date(callback_query: types.CallbackQuery, state:
         next_month_name = LOCAL_RU_MONTH[next_month]
         keyboard.inline_keyboard.append([types.InlineKeyboardButton(text=next_month_name, callback_data=next_month_name)])
         days_next_month = monthrange(current_year, next_month)[1]
-        next_month_days = await inline_buttons_generator(range(1, days_next_month - use_count_days + 1))
+        next_month_days = await ibg.inline_buttons_generator(range(1, days_next_month - use_count_days + 1))
         for day_keyboard_next_month in next_month_days.inline_keyboard:
             keyboard.inline_keyboard.append(day_keyboard_next_month)
 
-    temp_data_with_date_for_user = await get_string_representation_pool_inline_buttons(keyboard)
+    temp_data_with_date_for_user = await ibg.get_string_representation_pool_inline_buttons(keyboard)
 
     await state.update_data(temp_data_with_date_for_user=temp_data_with_date_for_user)
     await state.set_state(ManagerState.finish_date)
@@ -126,7 +127,7 @@ async def manager_finish_date(callback_query: types.CallbackQuery, state: FSMCon
     "which month the user selection belongs to"
     await state.update_data(finish_date=finish_date_plan_for_manager.strftime("%Y-%m-%d"))
     mask_buttons = [x if x != 0 else "МСК" for x in range(-1, 10)]
-    keyboard = await inline_buttons_generator([x if isinstance(x, str) or x == -1 else "+" + str(x) for x in mask_buttons])
+    keyboard = await ibg.inline_buttons_generator([x if isinstance(x, str) or x == -1 else "+" + str(x) for x in mask_buttons])
     await callback_query.message.answer(
         "Давайте выберем часовой пояс! Чтобы было легче ориентироваться, оттолкнемся от московской времени.",
         reply_markup=keyboard,
@@ -139,17 +140,62 @@ async def manager_finish_date(callback_query: types.CallbackQuery, state: FSMCon
 async def manager_timezone(callback_query: types.CallbackQuery, state: FSMContext):
     user_choice = callback_query.data
     await state.update_data(timezone=user_choice)
-    await state.set_state(DrugState.name)
+    await state.set_state(RegimenState.hour)
+    keyboard = await ibg.inline_buttons_generator(range(0, 24), postfix=":xx")
     await callback_query.message.answer(
-        "Отлично! С временными рамками мы определились!\nТеперь введите название лекарства в рамках курса.",
+        "Отлично! \nТеперь выберите время приема лекарства в течении дня.\nСначала выбере час, потом минуты. ",
+        reply_markup=keyboard,
     )
 
 
-@drug_regimen_router.callback_query(DrugState.name)
-async def manager_drug_name(callback_query: types.CallbackQuery, state: FSMContext):
+@drug_regimen_router.callback_query(RegimenState.hour)
+async def manager_regimen_hour(callback_query: types.CallbackQuery, state: FSMContext):
     user_text = callback_query.data
-    await state.update_data(drug_name=user_text)
-    await state.set_state(DrugState.start_date)
+    await state.update_data(regimen_hour=user_text)
+    await state.set_state(RegimenState.minute)
+    keyboard = await ibg.inline_buttons_generator(
+        [x if x >= 10 else "0" + str(x) for x in range(0, 56, 5)], prefix=user_text.split(":")[0] + ":")
     await callback_query.message.answer(
-        "Временные рамки в рамках курса?\nВыберете дату начала приема препарата в рамках курса. ",
+        f"Хорошо?\nВыбран час {user_text}:00.\nТеперь выберите минуты. ",
+        reply_markup=keyboard,
     )
+
+
+@drug_regimen_router.callback_query(RegimenState.minute)
+async def manager_regimen_minute(callback_query: types.CallbackQuery, state: FSMContext):
+    user_text = callback_query.data
+    await state.update_data(regimen_minute=user_text)
+    await state.set_state(RegimenState.supplement)
+    await callback_query.message.answer(
+        "Прекрасно. Осталось к этому конкретному напоминанию добавить памятку.\n"
+        "Например:\nПосле еды или до. Выпить тощак принять или запить обильным количество воды, может быть рассосать и тп.",
+    )
+
+
+@drug_regimen_router.message(RegimenState.supplement)
+async def manager_regimen_supplement(message: types.Message, state: FSMContext):
+    user_text = message.text
+    await state.update_data(regimen_supplement=user_text)
+    await state.set_state(RegimenState.add_more)
+    await message.answer(
+        "Добавить ещё время приема в течении дня?",
+        reply_markup=await ibg.yes_or_not_inline_buttons(),
+    )
+
+
+@drug_regimen_router.callback_query(RegimenState.add_more)
+async def manager_regimen_add_more(callback_query: types.CallbackQuery, state: FSMContext):
+    # user_text = callback_query.data
+    # await state.update_data(regimen_supplement=user_text)
+    if callback_query.data == "yes":
+        await state.set_state(RegimenState.hour)
+        keyboard = await ibg.inline_buttons_generator(range(0, 24), postfix=":xx")
+        await callback_query.message.answer(
+            "Выберите ещё одно время приема лекарства в течении дня.",
+            reply_markup=keyboard,
+        )
+    else:
+        await state.clear()
+        await callback_query.message.answer(
+            "Всё. Данные сохранены в системе.",
+        )

@@ -13,22 +13,11 @@ class ManagerState(StatesGroup):
     cancel = State()
 
 
-class DrugState(StatesGroup):
-    """Сборщик информации о конкретном приёме лекарства."""
-
-    name = State()
-    start_date = State()
-    finish_date = State()
-    daily_intake = State()
-    reception_time = State()
-    cancel = State()
-
-
 class RegimenState(StatesGroup):
     """Заполнитель режима приема лекарств."""
 
-    name = State()
-    drug_time = State()
+    hour = State()
+    minute = State()
     supplement = State()
     """После еды или до/на тощак/запить/рассосать и тп."""
-    cancel = State()
+    add_more = State()
