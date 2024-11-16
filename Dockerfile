@@ -8,10 +8,6 @@ RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
 
 COPY Makefile .
 
-COPY alembic.ini .
-
-COPY ./migrations ./migrations
-
 COPY ./static ./static
 
 RUN pip install -r requirements.txt --no-cache-dir

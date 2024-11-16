@@ -1,11 +1,11 @@
-from src.drug_regimen.repository import ManagerRepository, RegimenRepository
+from src.drug_regimen.requests import ManagerApiClient, RegimenApiClient
 from src.drug_regimen.service import ManagerService, RegimenService
-from src.user.repository import UserRepository
+from src.user.dependencies import user_service
 
 
 def manager_service():
-    return ManagerService(ManagerRepository, UserRepository)
+    return ManagerService()
 
 
 def regimen_service():
-    return RegimenService(RegimenRepository, UserRepository)
+    return RegimenService(ManagerApiClient(), RegimenApiClient(), user_service())

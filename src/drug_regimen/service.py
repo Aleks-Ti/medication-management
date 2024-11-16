@@ -4,21 +4,18 @@ from datetime import datetime, timedelta
 from aiogram import types
 from aiogram.fsm.context import FSMContext
 
-from src.core.repository import AbstractRepository
-from src.drug_regimen.repository import ManagerRepository, RegimenRepository
+from src.core.api_client import AbstractApiClient
+from src.core.config import settings
+from src.drug_regimen.requests import ManagerApiClient, RegimenApiClient
 from src.drug_regimen.state_machine import ManagerState, RegimenState
 from src.drug_regimen.utils import LOCAL_RU_MONTH, get_user_date
-from src.user.repository import UserRepository
+from src.user.service import UserService
 from src.utils.buttons import InlineButtonsGenerator as ibg
 
 TEMP_DATA_FOR_MANAGER = "temp_data_with_date_for_user"
 
 
 class ManagerService:
-    def __init__(self, manager_repository: AbstractRepository, user_repository: AbstractRepository):
-        self.manager_repository: ManagerRepository = manager_repository()
-        self.user_repository: UserRepository = user_repository()
-
     async def survey_name(self, message: types.Message, state: FSMContext):
         await state.clear()
         await state.set_state(ManagerState.name)
@@ -136,47 +133,55 @@ class ManagerService:
 
 
 class RegimenService:
-    def __init__(self, regimen_repository: AbstractRepository, user_repository: AbstractRepository):
-        self.regimen_repository: RegimenRepository = regimen_repository()
-        self.user_repository: UserRepository = user_repository()
+    def __init__(
+        self,
+        manager_api_client: AbstractApiClient,
+        regimen_api_client: AbstractApiClient,
+        user_service: UserService,
+    ):
+        self.manager_api_client: ManagerApiClient = manager_api_client
+        self.regimen_api_client: RegimenApiClient = regimen_api_client
+        self.user_service: UserService = user_service
+        self.API_URL = settings.BASE_API_URL
 
     async def __add_full_plane_and_first_regimen_time(self, callback_query: types.CallbackQuery, state: FSMContext):
         state_data = await state.get_data()
         fields_for_manager = {
             "name": state_data["plane_name"],
-            "start_date": datetime.strptime(state_data["start_date"], "%Y-%m-%d"),
-            "finish_date": datetime.strptime(state_data["finish_date"], "%Y-%m-%d"),
+            "start_date": datetime.strptime(state_data["start_date"], "%Y-%m-%d").strftime("%Y-%m-%d"),
+            "finish_date": datetime.strptime(state_data["finish_date"], "%Y-%m-%d").strftime("%Y-%m-%d"),
             "timezone": state_data["timezone"],
-            "user_id": (await self.user_repository.get_or_create_user(callback_query.message)).id,
             "is_active": True,
         }
-        manager_obj = await ManagerRepository().add_one(fields_for_manager)
-
         fields_for_regimen = {
-            "drug_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time(),
+            "drug_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time().strftime("%H:%M"),
             "supplement": state_data["regimen_supplement"],
             "is_active": True,
-            "manager_id": manager_obj.id,
         }
-        await self.regimen_repository.add_one(fields_for_regimen)
+        body = {
+            "user_tg_id": callback_query.from_user.id,
+            "manager": fields_for_manager,
+            "regimen": fields_for_regimen,
+        }
+        path = self.API_URL + "/drug-regimen/manager/complex"
+        response_manager = await self.manager_api_client.post_one(body, path)
         await state.clear()
         await state.update_data(count_regimen=1)
-        await state.update_data(manager_id=manager_obj.id)
+        await state.update_data(manager_id=response_manager.json()["id"])
 
     async def __add_more_regimen_time(self, callback_query: types.CallbackQuery, state: FSMContext):
         state_data = await state.get_data()
         if state_data["count_regimen"] >= 10:
             raise
 
-        manager_obj = await ManagerRepository().find_one(state_data["manager_id"])
-
-        fields_for_regimen = {
-            "drug_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time(),
+        body = {
+            "manager_id": state_data["manager_id"],
             "supplement": state_data["regimen_supplement"],
             "is_active": True,
-            "manager_id": manager_obj.id,
+            "drug_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time().strftime("%H:%M"),
         }
-        await self.regimen_repository.add_one(fields_for_regimen)
+        path = self.API_URL + "/drug-regimen/regimen/add"
+        await self.manager_api_client.post_one(body, path)
         await state.update_data(count_regimen=state_data["count_regimen"] + 1)
 
     async def survey_regimen_time(self, callback_query: types.CallbackQuery, state: FSMContext):

@@ -23,4 +23,4 @@ startd:
 	docker compose down && docker compose up -d
 
 redis:
-	docker run --name redis -p 6379:6379 -d --rm redis --requirepass 123425
+	docker run --name redis -p 6388:6379 -d --rm redis --requirepass 123425

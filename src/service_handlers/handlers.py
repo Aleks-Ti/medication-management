@@ -6,7 +6,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from src.user.dependencies import user_service as _user_service
-from src.user.models import User
 from src.utils.buttons import BaseMenuKeyboard as bmk
 from src.utils.buttons import MainKeyboard as mk
 
@@ -39,7 +38,7 @@ async def send_welcome(message: Message):
         get_or_create_user - создания юзера и занесения в базу данных.
     """
 
-    user: User = await _user_service().user_repository.get_or_create_user(message)
+    _ = await _user_service().get_or_create_user(message)
 
     button_1 = types.KeyboardButton(text=mk.ADD_DRUG_REGIMEN)
     button_2 = types.KeyboardButton(text=mk.ME_DRUG_REGIMEN)
@@ -56,7 +55,7 @@ async def send_welcome(message: Message):
         "йогурта в обед для хорошего пищеварения!\nБот поможет ничего не забыть!\n\n"
         "Если хотите создать курс приема лекарств, выбирайте кнопку **{}**\n\n"
         "Можете посмотреть пройденный курсы и заметки по ним, выбирайте кнопку **{}**".format(
-            user.first_name, mk.ADD_DRUG_REGIMEN, mk.ME_DRUG_REGIMEN,
+            message.from_user.username, mk.ADD_DRUG_REGIMEN, mk.ME_DRUG_REGIMEN,
         ),
         reply_markup=keyboard,
     )

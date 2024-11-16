@@ -1,8 +1,8 @@
+import os
 from dataclasses import dataclass
 from os import getenv
 
 from dotenv import load_dotenv
-from sqlalchemy.engine import URL
 
 load_dotenv()
 
@@ -15,35 +15,6 @@ class BotConfig:
         required_vars = "token"
         if getattr(self, required_vars) is None:
             raise ValueError("Отсутствует токен для бота в окружении проекта. Добавьте его в .env файл.")
-
-
-@dataclass
-class PostgresConfig:
-    name_db: str | None = getenv("PG_DB_NAME")
-    user: str | None = getenv("PG_USER_NAME")
-    password: str | None = getenv("PG_PASSWORD")
-    port: str | None = getenv("PG_PORT")
-    host: str | None = getenv("PG_HOST")
-    driver: str = "asyncpg"
-    database_system = "postgresql"
-
-    def __post_init__(self):
-        required_vars = ["name_db", "user", "password", "port", "host"]
-        for var in required_vars:
-            if getattr(self, var) is None:
-                raise ValueError(
-                    f"Нет переменной {var} для коннекта БД в окружении проекта.",
-                )
-
-    def build_connection_str(self) -> str:
-        return URL.create(
-            drivername=f"{self.database_system}+{self.driver}",
-            username=self.user,
-            password=self.password,
-            host=self.host,
-            port=self.port,
-            database=self.name_db,
-        ).render_as_string(hide_password=False)
 
 
 @dataclass
@@ -68,10 +39,23 @@ class RedisConfig:
         return connect
 
     def build_connection_str_for_aiogram(self) -> str:
-        connect = f"redis://{self.redis_host}/{self.db_num_for_aiogram}/{self.db_num_for_calery}"
+        connect = f"redis://{self.redis_host}:{self.port}/{self.db_num_for_calery}"
         return connect
 
 
+@dataclass
+class Settings:
+    BASE_API_URL = (
+        os.getenv("BASE_URL_API_LOCAL")
+        if os.getenv("DEV") == "local"
+        else os.getenv("BASE_URL_API_CONTAINER")
+        if os.getenv("DEV") == "local_container"
+        else os.getenv("BASE_URL_API_PROD")
+        if os.getenv("DEV") == "prod"
+        else "Зайди в .env и Добавь DEV переменную и что нибудь из этого [BASE_URL_API_LOCAL, BASE_URL_API_CONTAINER, BASE_URL_API_PROD]"  # noqa
+    )
+
+
 redis_conf = RedisConfig()
-postgres_conf = PostgresConfig()
 bot_conf = BotConfig()
+settings = Settings()

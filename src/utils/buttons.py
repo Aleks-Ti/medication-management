@@ -45,7 +45,7 @@ BOT_MENU_COMMANDS = [
 class InlineButtonsGenerator:
     @staticmethod
     async def inline_buttons_generator(
-            buttons: list[str, int], prefix=None, postfix=None, callback_unique_indetifier=None,
+            buttons: list[str | int], prefix=None, postfix=None, callback_unique_indetifier=None,
     ) -> types.InlineKeyboardMarkup:
         max_button_one_page = 3
         result_list_buttons = []
