@@ -154,7 +154,7 @@ class RegimenService:
             "is_active": True,
         }
         fields_for_regimen = {
-            "drug_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time().strftime("%H:%M"),
+            "reception_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time().strftime("%H:%M"),
             "supplement": state_data["regimen_supplement"],
             "is_active": True,
         }
@@ -178,9 +178,9 @@ class RegimenService:
             "manager_id": state_data["manager_id"],
             "supplement": state_data["regimen_supplement"],
             "is_active": True,
-            "drug_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time().strftime("%H:%M"),
+            "reception_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time().strftime("%H:%M"),
         }
-        path = self.API_URL + "/drug-regimen/regimen/add"
+        path = self.API_URL + "/drug-regimen/regimen/complex"
         await self.manager_api_client.post_one(body, path)
         await state.update_data(count_regimen=state_data["count_regimen"] + 1)
 

@@ -7,6 +7,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from dotenv import load_dotenv
 
 from src.core.config import bot_conf, redis_conf
+from src.event.service import EventService
 from src.routers import all_routers
 from src.utils.buttons import BOT_MENU_COMMANDS
 
@@ -30,6 +31,10 @@ async def main() -> None:
         storage = RedisStorage.from_url(redis_conf.build_connection_str_for_aiogram())
         bot = Bot(bot_conf.token)
         dp = Dispatcher(storage=storage)
+
+        event_service = EventService(bot)
+        asyncio.create_task(event_service.consume_from_rabbitmq())
+
         for router in all_routers:
             dp.include_router(router)
         await bot.set_my_commands(BOT_MENU_COMMANDS, language_code="ru")

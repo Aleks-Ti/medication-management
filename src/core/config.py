@@ -56,6 +56,26 @@ class Settings:
     )
 
 
+@dataclass
+class MQEnvs:
+    ui_port: str | None = getenv("RMQ_UI_PORT")
+    network_port: int | None = int(getenv("RMQ_NETWOTK_PORT"))
+    user: str | None = str(getenv("RMQ_USERNAME"))
+    password: str | None = str(getenv("RMQ_PASSWORD"))
+    inner_port_for_compose: int = int(getenv("RMQ_UI_INNER_PORT"))
+
+    def __post_init__(self):
+        required_vars = ["ui_port", "network_port", "user", "password", "inner_port_for_compose"]
+        for var in required_vars:
+            value = getattr(self, var)
+            if value is None:
+                raise ValueError(f"Environment variable for <{var}> is not set")
+
+    def build_connection(self):
+        return f"amqp://{self.user}:{self.password}@localhost:{self.network_port}/"
+
+
 redis_conf = RedisConfig()
 bot_conf = BotConfig()
 settings = Settings()
+rabbit_mq = MQEnvs()
