@@ -21,7 +21,7 @@ class BotConfig:
 class RedisConfig:
     db_num_for_calery: int = int(getenv("REDIS_DATABASE_FOR_CELERY", 0))  # 0-10
     db_num_for_aiogram: int = int(getenv("REDIS_DATABASE_FOR_AIOGRAM", 1))  # 0-10
-    redis_host: str | None = getenv("REDIS_HOST", "localhost")
+    redis_host: str | None = "localhost" if os.getenv("DEV") == "local" else "host.docker.internal"  # getenv("REDIS_HOST", "localhost")
 
     password: str | None = getenv("REDIS_PASSWORD")
     port: str | None = getenv("REDIS_PORT")
@@ -39,7 +39,7 @@ class RedisConfig:
         return connect
 
     def build_connection_str_for_aiogram(self) -> str:
-        connect = f"redis://{self.redis_host}:{self.port}/{self.db_num_for_calery}"
+        connect = f"redis://{self.redis_host}:{self.port}/{self.db_num_for_aiogram}"
         return connect
 
 
@@ -63,6 +63,7 @@ class MQEnvs:
     user: str | None = str(getenv("RMQ_USERNAME"))
     password: str | None = str(getenv("RMQ_PASSWORD"))
     inner_port_for_compose: int = int(getenv("RMQ_UI_INNER_PORT"))
+    rabbit_host: str = "localhost" if os.getenv("DEV") == "local" else "host.docker.internal"
 
     def __post_init__(self):
         required_vars = ["ui_port", "network_port", "user", "password", "inner_port_for_compose"]
@@ -72,7 +73,9 @@ class MQEnvs:
                 raise ValueError(f"Environment variable for <{var}> is not set")
 
     def build_connection(self):
-        return f"amqp://{self.user}:{self.password}@localhost:{self.network_port}/"
+        import logging
+        logging.info(f"!!!!!!!!!!!!!{self.rabbit_host}")
+        return f"amqp://{self.user}:{self.password}@{self.rabbit_host}:{self.network_port}/"
 
 
 redis_conf = RedisConfig()

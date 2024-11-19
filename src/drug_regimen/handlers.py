@@ -90,13 +90,16 @@ async def regimen_add_more(callback_query: types.CallbackQuery, state: FSMContex
     try:
         await regimen_service().survey_add_more(callback_query, state)
     except httpx.RequestError as exc:
-        logging.exception(f"Request failed on handler regimen_add_more: {exc}")
-        raise
+        logging.error(f"Request failed on handler regimen_add_more: {exc}")
+        pass
+    except httpx.TransportError as exc:
+        logging.error(f"Возможно плохой url был задан для regimen_add_more: {exc}")
+        pass
     except httpx.HTTPStatusError as exc:
-        logging.exception(
-            f"HTTP error. Request failed on handler regimen_add_more: {exc.response.status_code} - {exc.response.text}",
+        logging.error(
+            f"HTTP error. Пришел не ожиданный ответ на запрос: {exc.response.status_code} - {exc.response.text}",
         )
-        raise
+        pass
     except Exception as err:
-        logging.exception(f"Error handler regimen_add_more. {err}")
-        raise
+        logging.error(f"Error handler regimen_add_more. {err}")
+        pass
