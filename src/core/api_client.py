@@ -44,10 +44,10 @@ class ApiClient(AbstractApiClient[T]):
             response.raise_for_status()
             return response
 
-    async def get_all(self, path: str) -> httpx.Response:
+    async def get_all(self, path: str, user_tg_id: int) -> httpx.Response:
         async with httpx.AsyncClient() as client:
-            # client.cookies.set(self.cookie)
-            response: httpx.Response = await client.get(path)
+            response: httpx.Response = await client.get(path, params={"user_tg_id": user_tg_id})
+            response.raise_for_status()
             return response
 
     async def get_one(self, path_id: int, path: str) -> httpx.Response:
