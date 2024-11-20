@@ -16,6 +16,21 @@ class MainKeyboard:
     CANCEL: str = "Отмена действия"
 
 
+class FilterCallbackSettingsManagerOrRegimenKeyboard:
+    """
+    Кнопки для главного меню.
+
+    Attributes:
+    - ADD_DRUG_REGIMEN = 'Добавить план/схему приёма лекарств'
+    - ME_DRUG_REGIMEN = 'Мои группы приёма лекарств'
+    - cancel = 'Отмена'
+    """
+
+    ADD_DRUG_REGIMEN: str = "Добавить план/схему приёма лекарств"
+    ME_DRUG_REGIMEN: str = "Мои группы приёма лекарств"
+    CANCEL: str = "Отмена действия"
+
+
 class BaseMenuKeyboard:
     """
     Кнопки для всплывающего меню.
@@ -45,7 +60,10 @@ BOT_MENU_COMMANDS = [
 class InlineButtonsGenerator:
     @staticmethod
     async def inline_buttons_generator(
-            buttons: list[str | int], prefix=None, postfix=None, callback_unique_indetifier=None,
+        buttons: list[str | int],
+        prefix=None,
+        postfix=None,
+        callback_unique_indetifier=None,
     ) -> types.InlineKeyboardMarkup:
         max_button_one_page = 3
         result_list_buttons = []
@@ -57,12 +75,20 @@ class InlineButtonsGenerator:
                 result_list_buttons.append(temp_list_buttons)
                 temp_list_buttons = []
                 count = 0  # because clear temp_list_buttons
-                temp_list_buttons.append(types.InlineKeyboardButton(
-                    text=text, callback_data=callback_unique_indetifier + ":" + text if callback_unique_indetifier else text),
+                temp_list_buttons.append(
+                    types.InlineKeyboardButton(
+                        text=text,
+                        callback_data=callback_unique_indetifier + text if callback_unique_indetifier else text,
+                    ),
                 )
                 count += 1  # + 1 because after clearing the list, a subsequent button from the iteration has already been added
             else:
-                temp_list_buttons.append(types.InlineKeyboardButton(text=text, callback_data=text))
+                temp_list_buttons.append(
+                    types.InlineKeyboardButton(
+                        text=text,
+                        callback_data=callback_unique_indetifier + text if callback_unique_indetifier else text,
+                    ),
+                )
                 count += 1
         if temp_list_buttons is not None:
             result_list_buttons.append(temp_list_buttons)
@@ -92,6 +118,37 @@ class InlineButtonsGenerator:
             inline_keyboard=[
                 [types.InlineKeyboardButton(text="Да", callback_data="yes")],
                 [types.InlineKeyboardButton(text="Нет", callback_data="no")],
+            ],
+        )
+        return keyboard
+
+    @staticmethod
+    async def manager_or_regimen_edit_inline_buttons(exlude_regimen_button: bool, postfix: str = None) -> types.InlineKeyboardMarkup:
+        if exlude_regimen_button:
+            keyboard = types.InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        types.InlineKeyboardButton(
+                            text="Редактировать курс" if not postfix else "Редактировать курс №" + postfix,
+                            callback_data="edit_manager",
+                        ),
+                    ],
+                    [types.InlineKeyboardButton(text="Редактировать напоминания", callback_data="edit_regimen")],
+                ],
+            )
+        else:
+            keyboard = types.InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [types.InlineKeyboardButton(text="Редактировать курс", callback_data="edit_manager")],
+                ],
+            )
+        return keyboard
+
+    @staticmethod
+    async def manager_inline_button() -> types.InlineKeyboardMarkup:
+        keyboard = types.InlineKeyboardMarkup(
+            inline_keyboard=[
+                [types.InlineKeyboardButton(text="Редактировать курсы", callback_data="settings_manager")],
             ],
         )
         return keyboard

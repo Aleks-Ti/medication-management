@@ -18,10 +18,10 @@ class EventService:
         message = message.replace("'", '"')
         message = json.loads(message)
         message_text = (
-            f"Привет!\nСпешу напомнить о {message["manager_name"]}:\nНапоминание было назначенное на "
-            f"{message["reception_time"]}.\nТак же не забудьте про >> {message["supplement"]}"
+            f"```md\n# Привет!\n\nСпешу напомнить о {message["manager_name"]}:\n- Напоминание было назначенное на "
+            f"*{message["reception_time"]}*.\n- Так же не забудьте про >> *{message["supplement"]}*\n```"
         )
-        await self.bot.send_message(chat_id=message["tg_user_id"], text=message_text)
+        await self.bot.send_message(chat_id=message["tg_user_id"], text=message_text, parse_mode="MarkdownV2")
 
     async def consume_from_rabbitmq(self) -> NoReturn:
         """
@@ -50,6 +50,7 @@ class EventService:
                             logging.error(f"Ошибка обработки сообщения: {err}")
                             # вернуть в очередь .nack(requeue=True)
                             await message.nack(requeue=True)
+                            await asyncio.sleep(5)
             except Exception as err:
                 logging.error(f"Ошибка при подключении к RabbitMQ или потере соединения: {err}")
                 logging.info("Ожидаем 5 секунд и пробуем снова...")

@@ -142,7 +142,7 @@ class ManagerService:
         keyboard = await ibg.inline_buttons_generator([x if isinstance(x, str) or x == -1 else "+" + str(x) for x in mask_buttons])
         await callback_query.message.delete()
         await callback_query.message.answer(
-            "Давайте выберем часовой пояс! Чтобы было легче ориентироваться, оттолкнемся от московской времени.",
+            "Давайте выберем часовой пояс! Чтобы было легче ориентироваться, оттолкнемся от московского времени.",
             reply_markup=keyboard,
         )
 

@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 from aiogram import F, Router, types
@@ -21,10 +22,17 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         if current_state is not None:
             logging.info("Cancelling state %r", current_state)
             await state.clear()
-            await message.answer("Операция отменена.")
+            deleted_message = await message.answer("Операция отменена.")
+            await asyncio.sleep(1.9)
+            await message.chat.delete_message(deleted_message.message_id)
+            await asyncio.sleep(0.5)
+            await message.delete()
         else:
-            # send_reminder.apply_async((message.from_user.id, "@@@@@@@@@@@@@"), countdown=15)
-            await message.answer("Нет активных операций для отмены.")
+            deleted_message = await message.answer("Нет активных операций для отмены.")
+            await asyncio.sleep(1.9)
+            await message.chat.delete_message(deleted_message.message_id)
+            await asyncio.sleep(0.5)
+            await message.delete()
     except Exception as err:
         logging.exception(f"Error: command cancel - {err}")
 
@@ -55,7 +63,9 @@ async def send_welcome(message: Message):
         "йогурта в обед для хорошего пищеварения!\nБот поможет ничего не забыть!\n\n"
         "Если хотите создать курс приема лекарств, выбирайте кнопку **{}**\n\n"
         "Можете посмотреть пройденный курсы и заметки по ним, выбирайте кнопку **{}**".format(
-            message.from_user.username, mk.ADD_DRUG_REGIMEN, mk.ME_DRUG_REGIMEN,
+            message.from_user.username,
+            mk.ADD_DRUG_REGIMEN,
+            mk.ME_DRUG_REGIMEN,
         ),
         reply_markup=keyboard,
     )
