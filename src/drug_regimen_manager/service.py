@@ -82,7 +82,6 @@ class DrManagerService:
                 reply_markup=await ibg.manager_inline_button(),
             )
             await self.__save_previous_message(state, save_message_data.message_id)
-            # await state.update_data(previous_settings_message_id=save_message_data.message_id)
 
     async def settings_manager(self, callback_query: types.CallbackQuery, state: FSMContext) -> None:
         temp_manager_data = await state.get_data()
@@ -221,7 +220,7 @@ class DrManagerService:
         await self.regimen_api_client.update_one(
             self.base_regimen_url,
             current_regimen["id"],
-            {"reception_time": user_choice_full_time},
+            {"reception_time": datetime.strptime(user_choice_full_time, "%H:%M").time().strftime("%H:%M")},
         )
         await callback_query.answer(f"Время для напоминания, изменено на {user_choice_full_time}", show_alert=True)
         await callback_query.message.delete()
