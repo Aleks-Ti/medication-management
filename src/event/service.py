@@ -19,7 +19,7 @@ class EventService:
         message = json.loads(message)
         message_text = (
             f"```md\n# Привет!\n\nСпешу напомнить о {message["manager_name"]}:\n- Напоминание было назначенное на "
-            f"*{message["reception_time"]}*.\n- Так же не забудьте про >> *{message["supplement"]}*\n```"
+            f"*{message["reception_time"]}*.\n- Стикер >> *{message["supplement"]}*\n```"
         )
         await self.bot.send_message(chat_id=message["tg_user_id"], text=message_text, parse_mode="MarkdownV2")
 

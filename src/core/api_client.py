@@ -38,7 +38,7 @@ class AbstractApiClient(ABC, Generic[T]):
 
 
 class ApiClient(AbstractApiClient[T]):
-    async def post_one(self, body: dict, path: str) -> httpx.Response:
+    async def post_one(self, path: str, body: dict) -> httpx.Response:
         async with httpx.AsyncClient() as client:
             response = await client.post(path, json=body)
             response.raise_for_status()
@@ -50,30 +50,34 @@ class ApiClient(AbstractApiClient[T]):
             response.raise_for_status()
             return response
 
-    async def get_one(self, path_id: int, path: str) -> httpx.Response:
+    async def get_one(self, path: str, path_id: int) -> httpx.Response:
         async with httpx.AsyncClient() as client:
             url_with_path_id = f"{path}/{path_id}"
             # client.cookies.set(self.cookie)
             response: httpx.Response = await client.get(url_with_path_id)
+            response.raise_for_status()
             return response
 
-    async def delete_one(self, path_id: int, path: str) -> httpx.Response:
+    async def delete_one(self, path: str, path_id: int) -> httpx.Response:
         async with httpx.AsyncClient() as client:
             url_with_path_id = f"{path}/{path_id}"
             # client.cookies.set(self.cookie)
             response: httpx.Response = await client.delete(url_with_path_id)
+            response.raise_for_status()
             return response
 
-    async def patch_one(self, path_id: int, body: dict, path: str) -> httpx.Response:
+    async def patch_one(self, path: str, path_id: int, body: dict) -> httpx.Response:
         async with httpx.AsyncClient() as client:
             url_with_path_id = f"{path}/{path_id}"
             # client.cookies.set(self.cookie)
             response: httpx.Response = await client.patch(url_with_path_id, json=body)
+            response.raise_for_status()
             return response
 
-    async def update_one(self, path_id: int, body: dict, path: str) -> httpx.Response:
+    async def update_one(self, path: str, path_id: int, body: dict) -> httpx.Response:
         async with httpx.AsyncClient() as client:
             url_with_path_id = f"{path}/{path_id}"
             # client.cookies.set(self.cookie)
-            response: httpx.Response = await client.patch(url_with_path_id, json=body)
+            response: httpx.Response = await client.put(url_with_path_id, json=body)
+            response.raise_for_status()
             return response

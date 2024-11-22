@@ -34,7 +34,7 @@ class ManagerService:
 
     async def survey_date(self, message: types.Message, state: FSMContext):
         if not self._validate_input(message.text):
-            await message.reply("Ваш ввод содержит недопустимые символы. Пожалуйста, попробуйте снова.")
+            await message.reply("Ваш ввод содержит недопустимые символы | стикеры | гифки. Пожалуйста, попробуйте снова.")
             return
 
         await message.delete()
@@ -194,7 +194,7 @@ class RegimenService:
             "regimen": fields_for_regimen,
         }
         path = self.API_URL + "/drug-regimen/manager/complex"
-        response_manager = await self.manager_api_client.post_one(body, path)
+        response_manager = await self.manager_api_client.post_one(path, body)
         await state.clear()
         await state.update_data(count_regimen=1)
         await state.update_data(manager_id=response_manager.json()["id"])
@@ -210,7 +210,7 @@ class RegimenService:
         }
         path = self.API_URL + "/drug-regimen/regimen/complex"
         # logging.info(f"Запрос будет отправлен на: {path}")
-        await self.manager_api_client.post_one(body, path)
+        await self.manager_api_client.post_one(path, body)
         await state.update_data(count_regimen=state_data["count_regimen"] + 1)
 
     async def survey_regimen_time(self, callback_query: types.CallbackQuery, state: FSMContext):
@@ -220,7 +220,7 @@ class RegimenService:
         keyboard = await ibg.inline_buttons_generator(range(0, 24), postfix=":xx")
         await callback_query.message.delete()
         await callback_query.message.answer(
-            "Отлично! \nТеперь выберите время приема лекарства в течении дня.\nСначала выбере час, потом минуты. ",
+            "Отлично! \nТеперь выберите время напоминания в течении дня.\nСначала час, потом минуты. ",
             reply_markup=keyboard,
         )
 
@@ -244,13 +244,14 @@ class RegimenService:
         await callback_query.message.delete()
         new_message = await callback_query.message.answer(
             "Прекрасно. Осталось к этому конкретному напоминанию добавить памятку.\n"
-            "Например:\nПосле еды или до. Выпить тощак принять или запить обильным количество воды, может быть рассосать и тп.",
+            "Например:\nПосле еды или до. Выпить тощак принять или запить обильным количество воды, "
+            "может быть крутануть сальтуху или пять минут с пустым взглядом стоять и пялится в небо и т.п.",
         )
         await state.update_data(previous_message_id=new_message.message_id)
 
     async def survey_supplement(self, message: types.Message, state: FSMContext):
         if not self._validate_input(message.text):
-            await message.reply("Ваш ввод содержит недопустимые символы. Пожалуйста, попробуйте снова.")
+            await message.reply("Ваш ввод содержит недопустимые символы | стикеры | гифки. Пожалуйста, попробуйте снова.")
             return
 
         previous_message_id = (await state.get_data())["previous_message_id"]

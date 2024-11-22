@@ -64,6 +64,7 @@ class InlineButtonsGenerator:
         prefix=None,
         postfix=None,
         callback_unique_indetifier=None,
+        prefix_mask=None,
     ) -> types.InlineKeyboardMarkup:
         max_button_one_page = 3
         result_list_buttons = []
@@ -77,7 +78,7 @@ class InlineButtonsGenerator:
                 count = 0  # because clear temp_list_buttons
                 temp_list_buttons.append(
                     types.InlineKeyboardButton(
-                        text=text,
+                        text=text if not prefix_mask else prefix_mask + text,
                         callback_data=callback_unique_indetifier + text if callback_unique_indetifier else text,
                     ),
                 )
@@ -85,7 +86,7 @@ class InlineButtonsGenerator:
             else:
                 temp_list_buttons.append(
                     types.InlineKeyboardButton(
-                        text=text,
+                        text=text if not prefix_mask else prefix_mask + text,
                         callback_data=callback_unique_indetifier + text if callback_unique_indetifier else text,
                     ),
                 )
@@ -123,23 +124,31 @@ class InlineButtonsGenerator:
         return keyboard
 
     @staticmethod
-    async def manager_or_regimen_edit_inline_buttons(exlude_regimen_button: bool, postfix: str = None) -> types.InlineKeyboardMarkup:
+    async def delete_manager_or_regimen_edit_inline_buttons(
+        exlude_regimen_button: bool,
+        postfix: str,
+    ) -> types.InlineKeyboardMarkup:
         if exlude_regimen_button:
             keyboard = types.InlineKeyboardMarkup(
                 inline_keyboard=[
                     [
                         types.InlineKeyboardButton(
-                            text="Редактировать курс" if not postfix else "Редактировать курс №" + postfix,
-                            callback_data="edit_manager",
+                            text="Удалить курс №" + postfix,
+                            callback_data="delete_manager_№" + postfix,
                         ),
                     ],
-                    [types.InlineKeyboardButton(text="Редактировать напоминания", callback_data="edit_regimen")],
+                    [
+                        types.InlineKeyboardButton(
+                            text="Редактировать напоминания",
+                            callback_data="choice_regimens_by_manager_№" + postfix,
+                        ),
+                    ],
                 ],
             )
         else:
             keyboard = types.InlineKeyboardMarkup(
                 inline_keyboard=[
-                    [types.InlineKeyboardButton(text="Редактировать курс", callback_data="edit_manager")],
+                    [types.InlineKeyboardButton(text="Удалить курс №" + postfix, callback_data="delete_manager_№" + postfix)],
                 ],
             )
         return keyboard
@@ -149,6 +158,16 @@ class InlineButtonsGenerator:
         keyboard = types.InlineKeyboardMarkup(
             inline_keyboard=[
                 [types.InlineKeyboardButton(text="Редактировать курсы", callback_data="settings_manager")],
+            ],
+        )
+        return keyboard
+
+    @staticmethod
+    async def edit_regimen_values_inline_button() -> types.InlineKeyboardMarkup:
+        keyboard = types.InlineKeyboardMarkup(
+            inline_keyboard=[
+                [types.InlineKeyboardButton(text="Редактировать Время", callback_data="edit_regimen_time")],
+                [types.InlineKeyboardButton(text="Редактировать Стикер", callback_data="edit_regimen_stiker")],
             ],
         )
         return keyboard
