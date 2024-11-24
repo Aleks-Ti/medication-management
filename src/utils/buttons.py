@@ -11,23 +11,8 @@ class MainKeyboard:
     - cancel = 'Отмена'
     """
 
-    ADD_DRUG_REGIMEN: str = "Добавить план/схему приёма лекарств"
-    ME_DRUG_REGIMEN: str = "Мои группы приёма лекарств"
-    CANCEL: str = "Отмена действия"
-
-
-class FilterCallbackSettingsManagerOrRegimenKeyboard:
-    """
-    Кнопки для главного меню.
-
-    Attributes:
-    - ADD_DRUG_REGIMEN = 'Добавить план/схему приёма лекарств'
-    - ME_DRUG_REGIMEN = 'Мои группы приёма лекарств'
-    - cancel = 'Отмена'
-    """
-
-    ADD_DRUG_REGIMEN: str = "Добавить план/схему приёма лекарств"
-    ME_DRUG_REGIMEN: str = "Мои группы приёма лекарств"
+    ADD_DRUG_REGIMEN: str = "Добавить курс/схему напоминаний"
+    ME_DRUG_REGIMEN: str = "Мои курсы и напоминания"
     CANCEL: str = "Отмена действия"
 
 
@@ -60,15 +45,15 @@ BOT_MENU_COMMANDS = [
 class InlineButtonsGenerator:
     @staticmethod
     async def inline_buttons_generator(
-        buttons: list[str | int],
+        buttons: list[str | int] | range,
         prefix=None,
         postfix=None,
         callback_unique_indetifier=None,
         prefix_mask=None,
     ) -> types.InlineKeyboardMarkup:
         max_button_one_page = 3
-        result_list_buttons = []
-        temp_list_buttons = []
+        result_list_buttons: list = []
+        temp_list_buttons: list = []
         count = 0
         for value in buttons:
             text = f"{prefix if prefix else ''}{value if isinstance(value, str) else str(value)}{postfix if postfix else ''}"

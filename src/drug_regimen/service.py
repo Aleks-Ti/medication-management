@@ -10,6 +10,7 @@ from src.core.config import settings
 from src.drug_regimen.requests import ManagerApiClient, RegimenApiClient
 from src.drug_regimen.state_machine import ManagerState, RegimenState
 from src.drug_regimen.utils import LOCAL_RU_MONTH, get_user_date
+from src.drug_regimen_manager.service import DrManagerService
 from src.user.service import UserService
 from src.utils.buttons import InlineButtonsGenerator as ibg
 from src.utils.validate_user_message import validate_input
@@ -34,7 +35,10 @@ class ManagerService:
 
     async def survey_date(self, message: types.Message, state: FSMContext):
         if not self._validate_input(message.text):
-            await message.reply("Ваш ввод содержит недопустимые символы | стикеры | гифки. Пожалуйста, попробуйте снова.")
+            await message.reply(
+                "Ваш ввод содержит недопустимые символы | стикеры | гифки. Пожалуйста, попробуйте снова.",
+            )
+            logging.info(f"Странные символы на входе, пользователь {message.from_user.id}, ввод: {message.text}")
             return
 
         await message.delete()
@@ -52,7 +56,9 @@ class ManagerService:
 
         days_current_month = monthrange(current_year, current_month)[1]
         keyboard = await ibg.inline_buttons_generator(range(current_day, days_current_month + 1))
-        keyboard.inline_keyboard.insert(0, [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)])
+        keyboard.inline_keyboard.insert(
+            0, [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)],
+        )
 
         count_all_inline_keyboard = 0
         for pack_keyboard in keyboard.inline_keyboard:
@@ -61,7 +67,9 @@ class ManagerService:
         if count_all_inline_keyboard < 7:
             next_month = current_month + 1 if current_month < 12 else 1
             next_month_name = LOCAL_RU_MONTH[next_month]
-            keyboard.inline_keyboard.append([types.InlineKeyboardButton(text=next_month_name, callback_data=next_month_name)])
+            keyboard.inline_keyboard.append(
+                [types.InlineKeyboardButton(text=next_month_name, callback_data=next_month_name)],
+            )
             next_month_days = await ibg.inline_buttons_generator(range(1, days_current_month - current_day + 1))
             for day_keyboard_next_month in next_month_days.inline_keyboard:
                 keyboard.inline_keyboard.append(day_keyboard_next_month)
@@ -69,8 +77,14 @@ class ManagerService:
             skip_row_name_month = 1
             max_row_buttons = 3
             keyboard.inline_keyboard = keyboard.inline_keyboard[: max_row_buttons + skip_row_name_month]
-            keyboard.inline_keyboard[max_row_buttons + skip_row_name_month - 1].pop()
-            keyboard.inline_keyboard[max_row_buttons + skip_row_name_month - 1].pop()
+            if (
+                len(keyboard.inline_keyboard[-1]) > 1 and len(keyboard.inline_keyboard[-1]) == 2
+            ):  # NOTE вынести в отдельный метод, он убирает прибирает лишние кнопки в ряду,
+                # чтобы было ровно 7 дней, назвать типо, normalize_days_inline_button
+                keyboard.inline_keyboard[max_row_buttons + skip_row_name_month - 1].pop()
+            else:
+                keyboard.inline_keyboard[max_row_buttons + skip_row_name_month - 1].pop()
+                keyboard.inline_keyboard[max_row_buttons + skip_row_name_month - 1].pop()
 
         temp_data_with_date_for_user = await ibg.get_string_representation_pool_inline_buttons(keyboard)
         await state.update_data(temp_data_with_date_for_user=temp_data_with_date_for_user)
@@ -81,7 +95,9 @@ class ManagerService:
         await message.chat.delete_message(previous_start_message_id)
 
     async def survey_finish_date(self, callback_query: types.CallbackQuery, state: FSMContext):
-        if callback_query.data in LOCAL_RU_MONTH.values():  # NOTE заглушка, если пользователь протыкает название месяца, а не дату.
+        if (
+            callback_query.data in LOCAL_RU_MONTH.values()
+        ):  # NOTE заглушка, если пользователь протыкает название месяца, а не дату.
             await state.set_state(ManagerState.start_date)
             return
 
@@ -105,13 +121,17 @@ class ManagerService:
         current_month_name = LOCAL_RU_MONTH[current_month]
         days_current_month = monthrange(current_year, current_month)[1]
         keyboard = await ibg.inline_buttons_generator(range(current_day, days_current_month + 1))
-        keyboard.inline_keyboard.insert(0, [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)])
+        keyboard.inline_keyboard.insert(
+            0, [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)],
+        )
 
         if len(keyboard.inline_keyboard) < 30:
             use_count_days = days_current_month - current_day
             next_month = current_month + 1 if current_month < 12 else 1
             next_month_name = LOCAL_RU_MONTH[next_month]
-            keyboard.inline_keyboard.append([types.InlineKeyboardButton(text=next_month_name, callback_data=next_month_name)])
+            keyboard.inline_keyboard.append(
+                [types.InlineKeyboardButton(text=next_month_name, callback_data=next_month_name)],
+            )
             days_next_month = monthrange(current_year, next_month)[1]
             next_month_days = await ibg.inline_buttons_generator(range(1, days_next_month - use_count_days + 1))
             for day_keyboard_next_month in next_month_days.inline_keyboard:
@@ -130,16 +150,25 @@ class ManagerService:
         )
 
     async def survey_timezone(self, callback_query: types.CallbackQuery, state: FSMContext):
+        if (
+            callback_query.data in LOCAL_RU_MONTH.values()
+        ):  # NOTE заглушка, если пользователь протыкает название месяца, а не дату.
+            await state.set_state(ManagerState.finish_date)
+            return
+
         await state.set_state(ManagerState.timezone)
         data_state = await state.get_data()
 
         choice_finish_date = data_state[TEMP_DATA_FOR_MANAGER]
         user_choice = callback_query.data
         finish_date_plan_for_manager = await get_user_date(choice_finish_date, user_choice)
+        logging.info(f"finish_date wies: {user_choice}")
         "which month the user selection belongs to"
         await state.update_data(finish_date=finish_date_plan_for_manager.strftime("%Y-%m-%d"))
         mask_buttons = [x if x != 0 else "МСК" for x in range(-1, 10)]
-        keyboard = await ibg.inline_buttons_generator([x if isinstance(x, str) or x == -1 else "+" + str(x) for x in mask_buttons])
+        keyboard = await ibg.inline_buttons_generator(
+            [x if isinstance(x, str) or x == -1 else "+" + str(x) for x in mask_buttons],
+        )
         await callback_query.message.delete()
         await callback_query.message.answer(
             "Давайте выберем часовой пояс! Чтобы было легче ориентироваться, оттолкнемся от московского времени.",
@@ -153,10 +182,12 @@ class RegimenService:
         manager_api_client: AbstractApiClient,
         regimen_api_client: AbstractApiClient,
         user_service: UserService,
+        dr_manager_service: DrManagerService,
     ):
         self.manager_api_client: ManagerApiClient = manager_api_client
         self.regimen_api_client: RegimenApiClient = regimen_api_client
         self.user_service: UserService = user_service
+        self.dr_manager_service: DrManagerService = dr_manager_service
         self.API_URL = settings.BASE_API_URL
         self._validate_input = validate_input
 
@@ -172,7 +203,12 @@ class RegimenService:
             )
             await state.clear()
             await callback_query.message.delete()
-            await callback_query.message.answer("Данные сохранены в системе.")
+            await callback_query.answer(
+                "Данные сохранены.\nВы всегда можете посмотреть/отредактировать свои курсы в меню `Мои курсы и напоминания`",
+                show_alert=True,
+            )
+            return True
+        return False
 
     async def __add_full_plane_and_first_regimen_time(self, callback_query: types.CallbackQuery, state: FSMContext):
         state_data = await state.get_data()
@@ -251,7 +287,10 @@ class RegimenService:
 
     async def survey_supplement(self, message: types.Message, state: FSMContext):
         if not self._validate_input(message.text):
-            await message.reply("Ваш ввод содержит недопустимые символы | стикеры | гифки. Пожалуйста, попробуйте снова.")
+            await message.reply(
+                "Ваш ввод содержит недопустимые символы | стикеры | гифки. Пожалуйста, попробуйте снова.",
+            )
+            logging.info(f"Странные символы на входе, пользователь {message.from_user.id}, ввод: {message.text}")
             return
 
         previous_message_id = (await state.get_data())["previous_message_id"]
@@ -282,7 +321,7 @@ class RegimenService:
             keyboard = await ibg.inline_buttons_generator(range(0, 24), postfix=":xx")
             await callback_query.message.delete()
             await callback_query.message.answer(
-                "Выберите ещё одно время приема лекарства в течении дня.",
+                "Выберите ещё одно напоминание в течении дня.",
                 reply_markup=keyboard,
             )
         else:
@@ -293,5 +332,9 @@ class RegimenService:
 
             await state.set_state(RegimenState.hour)
             await state.clear()
+            await callback_query.answer(
+                "Данные сохранены.\nВы всегда можете посмотреть/отредактировать свои курсы в меню `Мои курсы и напоминания`",
+                show_alert=True,
+            )
             await callback_query.message.delete()
-            await callback_query.message.answer("Данные сохранены в системе.")
+            # await self.dr_manager_service.get_all_managers_for_user(callback_query.message, state, callback_query.from_user.id)

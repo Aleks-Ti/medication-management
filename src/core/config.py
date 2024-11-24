@@ -21,7 +21,9 @@ class BotConfig:
 class RedisConfig:
     # db_num_for_calery: int = int(getenv("REDIS_DATABASE_FOR_CELERY", 1))  # 0-10
     db_num_for_aiogram: int = int(getenv("REDIS_DATABASE_FOR_AIOGRAM", 0))  # 0-10
-    redis_host: str | None = "localhost" if os.getenv("DEV") == "local" else "host.docker.internal"  # getenv("REDIS_HOST", "localhost")
+    redis_host: str | None = (
+        "localhost" if os.getenv("DEV") == "local" else "host.docker.internal"
+    )  # getenv("REDIS_HOST", "localhost")
 
     password: str | None = getenv("REDIS_PASSWORD")
     port: str | None = getenv("REDIS_PORT")
@@ -58,15 +60,13 @@ class Settings:
 
 @dataclass
 class MQEnvs:
-    ui_port: str | None = getenv("RMQ_UI_PORT")
     network_port: int | None = int(getenv("RMQ_NETWOTK_PORT"))
     user: str | None = str(getenv("RMQ_USERNAME"))
     password: str | None = str(getenv("RMQ_PASSWORD"))
-    inner_port_for_compose: int = int(getenv("RMQ_UI_INNER_PORT"))
-    rabbit_host: str = "localhost" if os.getenv("DEV") == "local" else "host.docker.internal"
+    rabbit_host: str = os.getenv("RMQ_HOST", "localhost")
 
     def __post_init__(self):
-        required_vars = ["ui_port", "network_port", "user", "password", "inner_port_for_compose"]
+        required_vars = ["network_port", "user", "password", "rabbit_host"]
         for var in required_vars:
             value = getattr(self, var)
             if value is None:
@@ -74,6 +74,7 @@ class MQEnvs:
 
     def build_connection(self):
         import logging
+
         logging.info(f"!!!!!!!!!!!!!{self.rabbit_host}")
         return f"amqp://{self.user}:{self.password}@{self.rabbit_host}:{self.network_port}/"
 

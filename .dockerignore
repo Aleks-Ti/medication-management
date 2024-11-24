@@ -2,3 +2,6 @@
 .envrc
 .env.example
 .envrc.example
+.env_container
+__pycache__
+__pypackages__

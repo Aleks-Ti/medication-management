@@ -2,13 +2,12 @@ FROM python:3.12
 
 WORKDIR /app
 
-COPY pyproject.toml poetry.lock ./
-RUN pip install poetry
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+COPY pyproject.toml uv.lock ./
+RUN pip install uv
+RUN uv export --no-dev --no-hashes | awk '{print $1}' FS=' ;' > requirements.txt
 
 COPY Makefile .
 
-COPY ./static ./static
 
 RUN pip install -r requirements.txt --no-cache-dir
 
