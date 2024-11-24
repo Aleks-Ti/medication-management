@@ -57,7 +57,8 @@ class ManagerService:
         days_current_month = monthrange(current_year, current_month)[1]
         keyboard = await ibg.inline_buttons_generator(range(current_day, days_current_month + 1))
         keyboard.inline_keyboard.insert(
-            0, [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)],
+            0,
+            [types.InlineKeyboardButton(text=current_month_name, callback_data=current_month_name)],
         )
 
         count_all_inline_keyboard = 0
@@ -77,7 +78,10 @@ class ManagerService:
             skip_row_name_month = 1
             max_row_buttons = 3
             keyboard.inline_keyboard = keyboard.inline_keyboard[: max_row_buttons + skip_row_name_month]
-            if (
+            logging.info([x[0].text if len(x) == 1 else ",".join([x.text for x in x]) for x in keyboard.inline_keyboard])
+            if len(keyboard.inline_keyboard[-1]) == 1:
+                pass
+            elif (
                 len(keyboard.inline_keyboard[-1]) > 1 and len(keyboard.inline_keyboard[-1]) == 2
             ):  # NOTE вынести в отдельный метод, он убирает прибирает лишние кнопки в ряду,
                 # чтобы было ровно 7 дней, назвать типо, normalize_days_inline_button
@@ -95,9 +99,7 @@ class ManagerService:
         await message.chat.delete_message(previous_start_message_id)
 
     async def survey_finish_date(self, callback_query: types.CallbackQuery, state: FSMContext):
-        if (
-            callback_query.data in LOCAL_RU_MONTH.values()
-        ):  # NOTE заглушка, если пользователь протыкает название месяца, а не дату.
+        if callback_query.data in LOCAL_RU_MONTH.values():  # NOTE заглушка, если пользователь протыкает название месяца, а не дату.
             await state.set_state(ManagerState.start_date)
             return
 
@@ -150,9 +152,7 @@ class ManagerService:
         )
 
     async def survey_timezone(self, callback_query: types.CallbackQuery, state: FSMContext):
-        if (
-            callback_query.data in LOCAL_RU_MONTH.values()
-        ):  # NOTE заглушка, если пользователь протыкает название месяца, а не дату.
+        if callback_query.data in LOCAL_RU_MONTH.values():  # NOTE заглушка, если пользователь протыкает название месяца, а не дату.
             await state.set_state(ManagerState.finish_date)
             return
 
@@ -245,7 +245,6 @@ class RegimenService:
             "reception_time": datetime.strptime(state_data["regimen_time"], "%H:%M").time().strftime("%H:%M"),
         }
         path = self.API_URL + "/drug-regimen/regimen/complex"
-        # logging.info(f"Запрос будет отправлен на: {path}")
         await self.manager_api_client.post_one(path, body)
         await state.update_data(count_regimen=state_data["count_regimen"] + 1)
 

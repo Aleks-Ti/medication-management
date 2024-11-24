@@ -19,29 +19,26 @@ class BotConfig:
 
 @dataclass
 class RedisConfig:
-    # db_num_for_calery: int = int(getenv("REDIS_DATABASE_FOR_CELERY", 1))  # 0-10
     db_num_for_aiogram: int = int(getenv("REDIS_DATABASE_FOR_AIOGRAM", 0))  # 0-10
-    redis_host: str | None = (
-        "localhost" if os.getenv("DEV") == "local" else "host.docker.internal"
-    )  # getenv("REDIS_HOST", "localhost")
-
+    db_num_for_auth: int = int(getenv("REDIS_DATABASE_FOR_AIOGRAM", 1))  # 0-10
+    redis_host: str | None = "host.docker.internal" if os.getenv("DEV") == "local" else "redis"
     password: str | None = getenv("REDIS_PASSWORD")
     port: str | None = getenv("REDIS_PORT")
 
     def __post_init__(self):
-        required_vars = ["db_num_for_aiogram", "redis_host", "password", "port"]
+        required_vars = ["db_num_for_aiogram", "redis_host", "password", "port", "db_num_for_auth"]
         for var in required_vars:
             if getattr(self, var) is None:
                 raise ValueError(
                     f"Нет переменной {var} для коннекта к Redis в окружении проекта.",
                 )
 
-    # def build_connection_str_for_celery(self) -> str:
-    #     connect = f"redis://{self.redis_host}:{self.port}/{self.db_num_for_calery}"
-    #     return connect
-
     def build_connection_str_for_aiogram(self) -> str:
         connect = f"redis://{self.redis_host}:{self.port}/{self.db_num_for_aiogram}"
+        return connect
+
+    def build_connection_str_for_auth(self) -> str:
+        connect = f"redis://{self.redis_host}:{self.port}/{self.db_num_for_auth}"
         return connect
 
 
@@ -73,9 +70,6 @@ class MQEnvs:
                 raise ValueError(f"Environment variable for <{var}> is not set")
 
     def build_connection(self):
-        import logging
-
-        logging.info(f"!!!!!!!!!!!!!{self.rabbit_host}")
         return f"amqp://{self.user}:{self.password}@{self.rabbit_host}:{self.network_port}/"
 
 

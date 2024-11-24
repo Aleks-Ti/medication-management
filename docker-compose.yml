@@ -1,3 +1,5 @@
+# local container
+
 services:
   bot:
     build:
@@ -12,8 +14,6 @@ services:
     image: "redis:6.2-alpine"
     restart: always
     env_file: .env_container
-    ports:
-      - "6388:6379"
     volumes:
       - redis_data:/data
     networks:
