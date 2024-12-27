@@ -1,10 +1,6 @@
-# local container
-
 services:
   bot:
-    build:
-      context: . # image from dockerhub
-      dockerfile: Dockerfile
+    image: aleksti/bot_med:latest
     env_file: .env
     networks:
       - scheduler_space
@@ -13,7 +9,7 @@ services:
   redis:
     image: "redis:6.2-alpine"
     restart: always
-    env_file: .env
+    env_file: .env_container
     volumes:
       - redis_data:/data
     networks:

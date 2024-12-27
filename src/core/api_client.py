@@ -13,27 +13,27 @@ T = TypeVar("T", bound=HasId)
 
 class AbstractApiClient(ABC, Generic[T]):
     @abstractmethod
-    async def post_one(self, body: dict, path: str) -> Any:
+    async def post_one(self, path: str, body: dict) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    async def get_all(self, path: str) -> Any:
+    async def get_all(self, path: str, query_params: int) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    async def get_one(self, path_id: int, path: str) -> Any:
+    async def get_one(self, path: str, path_id: int) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    async def delete_one(self, path_id: int, path: str) -> Any:
+    async def delete_one(self, path: str, path_id: int) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    async def patch_one(self, path_id: int, data: dict, path: str) -> Any:
+    async def patch_one(self, path: str, path_id: int, data: dict ) -> Any:
         raise NotImplementedError
 
     @abstractmethod
-    async def update_one(self, path_id: int, data: dict, path: str) -> Any:
+    async def update_one(self, path: str, path_id: int, data: dict) -> Any:
         raise NotImplementedError
 
 

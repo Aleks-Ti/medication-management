@@ -1,3 +1,5 @@
+import logging
+
 from aiogram.types import Message
 from httpx._models import Response
 
@@ -12,6 +14,7 @@ class UserService:
 
     async def get_or_create_user(self, message: Message) -> Response:
         path = settings.BASE_API_URL + "/user"
+        logging.info("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" + path)
         response: Response = await self.user_api_client.post_one(
             path,
             {
